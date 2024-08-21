@@ -1,96 +1,51 @@
-import os
-import uuid
-import re
-import asyncio
-import httpx
-import yt_dlp as youtube_dl
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import logging
+import aiohttp
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Cấu hình logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Hàm kiểm tra link TikTok
-def is_tiktok_link(url: str) -> bool:
-    tiktok_regex = r'https?://(www\.)?tiktok\.com/.*'
-    return re.match(tiktok_regex, url) is not None
+# Token của bot Telegram
+BOT_TOKEN = 'YOUR_BOT_TOKEN'
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Chào mừng! Hãy gửi cho tôi liên kết TikTok để tải video.")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Gửi tin nhắn chào mừng khi người dùng bắt đầu trò chuyện với bot."""
+    await update.message.reply_text('Chào bạn! Gửi cho tôi một liên kết video TikTok để tải về.')
 
-async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = update.message.text
-    chat_id = update.message.chat_id
-
-    if not is_tiktok_link(url):
-        await update.message.reply_text("Hãy nhập link TikTok vào đây.")
-        return
-
-    unique_id = str(uuid.uuid4())  # Tạo ID duy nhất
-    file_path = f'downloaded_video_{unique_id}.mp4'
-
-    ydl_opts = {
-        'format': 'mp4',
-        'outtmpl': file_path,
-        'noplaylist': True,  # Chỉ tải video đơn
-    }
-
-    try:
-        logger.info("Đang tải video từ TikTok...")
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.extract_info(url, download=True)
-        logger.info("Video đã tải xuống thành công.")
-
-        # Kiểm tra kích thước video
-        file_size = os.path.getsize(file_path)
-        max_size = 50 * 1024 * 1024  # 50MB
-
-        if file_size > max_size:
-            await update.message.reply_text("Video quá lớn để gửi qua Telegram.")
-            os.remove(file_path)
-            return
-
-        # Gửi video qua Telegram
-        if os.path.exists(file_path):
-            logger.info("Đang gửi video qua Telegram...")
-            async with httpx.AsyncClient(timeout=120) as client:
-                context.bot.request._client = client
-                
-                with open(file_path, 'rb') as video_file:
-                    await context.bot.send_video(chat_id=chat_id, video=video_file)
-                logger.info("Video đã được gửi thành công.")
+async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Xử lý liên kết TikTok và tải video về."""
+    if update.message.text:
+        url = update.message.text
+        if 'tiktok.com' in url:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        # Giả sử bạn có một hàm để xử lý video từ URL
+                        video_data = await response.read()
+                        
+                        # Gửi video về cho người dùng
+                        await update.message.reply_video(video_data)
+            except Exception as e:
+                logger.error(f"Error downloading video: {e}")
+                await update.message.reply_text("Có lỗi xảy ra khi tải video.")
         else:
-            logger.error("Tệp video không tồn tại.")
-            await update.message.reply_text("Đã xảy ra lỗi: Tệp video không tồn tại.")
+            await update.message.reply_text("Đây không phải là một liên kết TikTok hợp lệ.")
+    else:
+        await update.message.reply_text("Vui lòng gửi liên kết video TikTok.")
 
-        # Xóa tệp sau khi gửi xong
-        os.remove(file_path)
+async def main() -> None:
+    """Khởi tạo và chạy bot."""
+    application = Application.builder().token(BOT_TOKEN).build()
 
-    except Exception as e:
-        logger.error("Đã xảy ra lỗi khi gửi video:", exc_info=True)
-        await update.message.reply_text(f"Đã xảy ra lỗi: {e}")
+    # Đăng ký các handler
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_video))
 
-async def main():
-    TOKEN = os.getenv('TOKEN')  # Lấy token từ biến môi trường
-
-    # Cấu hình ứng dụng
-    application = ApplicationBuilder().token(TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_tiktok))
-
+    # Chạy bot
     await application.run_polling()
 
-# Chạy ứng dụng
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(main())
-    except RuntimeError as e:
-        if 'This event loop is already running' in str(e):
-            # Nếu vòng lặp sự kiện đã chạy, chạy lại vòng lặp sự kiện chính
-            loop.run_until_complete(main())
-        else:
-            raise
+    import asyncio
+    asyncio.run(main())
