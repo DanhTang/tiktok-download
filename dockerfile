@@ -20,4 +20,4 @@ COPY bot.py bot.py
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Chạy ứng dụng khi hình ảnh được khởi chạy
-CMD ["python", "downloadvideo.py"]
+CMD ["python", "bot.py"]

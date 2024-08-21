@@ -83,14 +83,14 @@ async def main():
 
     await application.run_polling()
 
-# Sử dụng vòng lặp sự kiện của asyncio
+# Chạy ứng dụng
 if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
     try:
-        asyncio.run(main())
+        loop.run_until_complete(main())
     except RuntimeError as e:
         if 'This event loop is already running' in str(e):
-            # Nếu vòng lặp sự kiện đã chạy, thì chạy lại vòng lặp sự kiện chính
-            loop = asyncio.get_event_loop()
+            # Nếu vòng lặp sự kiện đã chạy, chạy lại vòng lặp sự kiện chính
             loop.run_until_complete(main())
         else:
             raise
