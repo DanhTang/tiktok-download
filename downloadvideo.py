@@ -1,7 +1,7 @@
 import os
 import uuid
-import asyncio
 import re
+import asyncio
 import httpx
 import yt_dlp as youtube_dl
 from telegram import Update
@@ -56,7 +56,6 @@ async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists(file_path):
             logger.info("Đang gửi video qua Telegram...")
             async with httpx.AsyncClient(timeout=120) as client:
-                # Cập nhật bot để sử dụng client tùy chỉnh
                 context.bot.request._client = client
                 
                 with open(file_path, 'rb') as video_file:
@@ -76,7 +75,7 @@ async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def main():
     TOKEN = os.getenv('TOKEN')  # Lấy token từ biến môi trường
 
-    # Cấu hình ứng dụng với httpx client
+    # Cấu hình ứng dụng
     application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
@@ -84,6 +83,5 @@ async def main():
 
     await application.run_polling()
 
-# Chạy ứng dụng
 if __name__ == '__main__':
     asyncio.run(main())
