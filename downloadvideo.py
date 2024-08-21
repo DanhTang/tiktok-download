@@ -74,7 +74,7 @@ async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Đã xảy ra lỗi: {e}")
 
 async def main():
-    TOKEN = '6879930539:AAHJdB2e8I4pIHSyXejGEx5xlxcuz-JbdzI'
+    TOKEN = os.getenv('TOKEN')  # Lấy token từ biến môi trường
 
     # Cấu hình ứng dụng với httpx client
     application = ApplicationBuilder().token(TOKEN).build()
