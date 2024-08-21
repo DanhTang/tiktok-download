@@ -17,11 +17,9 @@ def is_tiktok_link(url: str) -> bool:
     tiktok_regex = r'https?://(www\.)?tiktok\.com/.*'
     return re.match(tiktok_regex, url) is not None
 
-# Hàm xử lý lệnh /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Chào mừng! Hãy gửi cho tôi liên kết TikTok để tải video.")
 
-# Hàm xử lý khi người dùng gửi link TikTok
 async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text
     chat_id = update.message.chat_id
@@ -58,7 +56,9 @@ async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if os.path.exists(file_path):
             logger.info("Đang gửi video qua Telegram...")
             async with httpx.AsyncClient(timeout=120) as client:
-                context.bot.request._client = client  # Sử dụng httpx client tùy chỉnh
+                # Cập nhật bot để sử dụng client tùy chỉnh
+                context.bot.request._client = client
+                
                 with open(file_path, 'rb') as video_file:
                     await context.bot.send_video(chat_id=chat_id, video=video_file)
                 logger.info("Video đã được gửi thành công.")
@@ -73,22 +73,22 @@ async def download_tiktok(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Đã xảy ra lỗi khi gửi video:", exc_info=True)
         await update.message.reply_text(f"Đã xảy ra lỗi: {e}")
 
-# Hàm chính để khởi chạy bot
 async def main():
     TOKEN = os.getenv('TOKEN')  # Lấy token từ biến môi trường
 
-    # Cấu hình ứng dụng Telegram
+    # Cấu hình ứng dụng với httpx client
     application = ApplicationBuilder().token(TOKEN).build()
 
-    # Thêm handler cho lệnh /start
     application.add_handler(CommandHandler("start", start))
-
-    # Thêm handler cho các tin nhắn văn bản khác
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_tiktok))
 
-    # Chạy polling để lắng nghe các sự kiện từ Telegram
     await application.run_polling()
 
-# Khởi chạy chương trình
+# Sử dụng vòng lặp sự kiện hiện có
 if __name__ == '__main__':
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        # Đã có vòng lặp sự kiện đang chạy, nên tạo một task mới
+        loop.create_task(main())
+    else:
+        loop.run_until_complete(main())
