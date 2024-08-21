@@ -84,11 +84,6 @@ async def main():
 
     await application.run_polling()
 
-# Sử dụng vòng lặp sự kiện hiện có
+# Chạy ứng dụng
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        # Đã có vòng lặp sự kiện đang chạy, nên tạo một task mới
-        loop.create_task(main())
-    else:
-        loop.run_until_complete(main())
+    asyncio.run(main())
