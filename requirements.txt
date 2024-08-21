@@ -1,0 +1,8 @@
+os
+uuid
+asyncio
+re
+httpx
+yt-dlp
+python-telegram-bot
+logging
