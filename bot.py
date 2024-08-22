@@ -38,7 +38,7 @@ async def echo(message: types.Message):
                 title = info_dict.get("title", "Không tìm thấy tiêu đề")
                 
                 if video_url:
-                    await message.answer(f"Tiêu đề: {title}")
+                    await message.answer(title)
                     await message.answer(f"URL: {video_url}")
                 else:
                     await message.answer("[+] Error: Could not find video URL.")
@@ -52,4 +52,3 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
- 
