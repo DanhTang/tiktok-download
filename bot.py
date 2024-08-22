@@ -1,51 +1,53 @@
 import logging
-import aiohttp
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+import requests
+import re
+import asyncio
+from aiogram import Bot, Dispatcher, types, Router
+import yt_dlp
+
+# Cấu hình header
+headers = requests.utils.default_headers()
+headers.update({'User-Agent': 'Mozilla/5.0 (X22; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',})
+
+# Thêm token của bạn vào đây
+API_TOKEN = '6879930539:AAHJdB2e8I4pIHSyXejGEx5xlxcuz-JbdzI'
 
 # Cấu hình logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# Token của bot Telegram
-BOT_TOKEN = 'YOUR_BOT_TOKEN'
+# Khởi tạo bot
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher()
+router = Router()
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Gửi tin nhắn chào mừng khi người dùng bắt đầu trò chuyện với bot."""
-    await update.message.reply_text('Chào bạn! Gửi cho tôi một liên kết video TikTok để tải về.')
+@router.message()
+async def echo(message: types.Message):
+    username = message.chat  # Tên người dùng trên Telegram
+    xurl = message.text  # URL đầy đủ
 
-async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Xử lý liên kết TikTok và tải video về."""
-    if update.message.text:
-        url = update.message.text
-        if 'tiktok.com' in url:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url) as response:
-                        # Giả sử bạn có một hàm để xử lý video từ URL
-                        video_data = await response.read()
-                        
-                        # Gửi video về cho người dùng
-                        await update.message.reply_video(video_data)
-            except Exception as e:
-                logger.error(f"Error downloading video: {e}")
-                await update.message.reply_text("Có lỗi xảy ra khi tải video.")
-        else:
-            await update.message.reply_text("Đây không phải là một liên kết TikTok hợp lệ.")
+    if "https://vm.tiktok.com/" in xurl or "https://www.tiktok.com/@" in xurl:
+        await message.answer("[+] Please Wait")
+        try:
+            ydl_opts = {
+                'format': 'best',
+                'quiet': True,
+                'outtmpl': '%(id)s.%(ext)s',
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(xurl, download=False)
+                video_url = info_dict.get("url", None)
+                if video_url:
+                    await message.answer("[+] Done! " + video_url)
+                else:
+                    await message.answer("[+] Error: Could not find video URL.")
+        except Exception as e:
+            await message.answer(f"[+] Error: {str(e)}")
     else:
-        await update.message.reply_text("Vui lòng gửi liên kết video TikTok.")
+        await message.answer("[+] invalid url")
 
-async def main() -> None:
-    """Khởi tạo và chạy bot."""
-    application = Application.builder().token(BOT_TOKEN).build()
-
-    # Đăng ký các handler
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_video))
-
-    # Chạy bot
-    await application.run_polling()
+async def main():
+    dp.include_router(router)
+    await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    import asyncio
     asyncio.run(main())
