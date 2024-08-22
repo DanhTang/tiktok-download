@@ -23,7 +23,8 @@ dp = Dispatcher(bot)
 async def echo(message: types.Message):
     xurl = message.text  # URL đầy đủ
 
-    if "https://vm.tiktok.com/" in xurl or "https://www.tiktok.com/@" in xurl:
+    # Kiểm tra nếu URL chứa "tiktok.com"
+    if "tiktok.com" in xurl:
         await message.answer("[+] Please Wait")
         try:
             ydl_opts = {
@@ -37,7 +38,7 @@ async def echo(message: types.Message):
                 title = info_dict.get("title", "Không tìm thấy tiêu đề")
                 
                 if video_url:
-                    await message.answer(title)
+                    await message.answer(f"Tiêu đề: {title}")
                     await message.answer(f"URL: {video_url}")
                 else:
                     await message.answer("[+] Error: Could not find video URL.")
