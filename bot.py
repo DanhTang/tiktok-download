@@ -10,7 +10,7 @@ headers = requests.utils.default_headers()
 headers.update({'User-Agent': 'Mozilla/5.0 (X22; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',})
 
 # Thêm token của bạn vào đây
-API_TOKEN = '6879930539:AAHJdB2e8I4pIHSyXejGEx5xlxcuz-JbdzI'
+API_TOKEN = '7263739107:AAEIsadEQdk4rIRWbCseBfxaOklGzGD5Yo4'
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO)
