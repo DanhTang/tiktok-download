@@ -44,8 +44,8 @@ async def echo(message: types.Message):
                     await message.answer("[+] Error: Could not find video URL.")
         except Exception as e:
             await message.answer(f"[+] Error: {str(e)}")
-    else:
-        await message.answer("[+] invalid url")
+    # else:
+    #     await message.answer("[+] invalid url")
 
 async def main():
     await dp.start_polling()
