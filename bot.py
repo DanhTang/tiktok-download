@@ -4,13 +4,14 @@ import re
 import asyncio
 from aiogram import Bot, Dispatcher, types
 import yt_dlp
+import os
 
 # Cấu hình header
 headers = requests.utils.default_headers()
 headers.update({'User-Agent': 'Mozilla/5.0 (X22; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',})
 
 # Thêm token của bạn vào đây
-API_TOKEN = '7263739107:AAEIsadEQdk4rIRWbCseBfxaOklGzGD5Yo4'
+API_TOKEN = os.getenv('TOKEN')
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO)
