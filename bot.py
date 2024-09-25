@@ -93,7 +93,7 @@ async def echo(message: types.Message):
                 'outtmpl': '%(id)s.%(ext)s',
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(xurl, download=True)
+                info_dict = ydl.extract_info(xurl, download=False)
                 video_url = info_dict.get("url", None)
                 title = info_dict.get("title", "Không tìm thấy tiêu đề")
                 
@@ -102,8 +102,20 @@ async def echo(message: types.Message):
                     parsed_url = urlparse(video_url)
                     query_params = parse_qs(parsed_url.query)
 
+                    # Sắp xếp các tham số theo thứ tự mong muốn
+                    new_params = {
+                        "video_id": query_params.get("video_id", [""])[0],
+                        "line": query_params.get("line", ["0"])[0],
+                        "is_play_url": query_params.get("is_play_url", ["1"])[0],
+                        "file_id": query_params.get("file_id", [""])[0],
+                        "item_id": query_params.get("item_id", [""])[0],
+                        "signaturev3": query_params.get("signaturev3", [""])[0],
+                        "shp": query_params.get("shp", [""])[0],
+                        "shcp": query_params.get("shcp", [""])[0],
+                    }
+
                     # Tạo URL mới theo định dạng cũ
-                    new_video_url = f"https://api16-normal-useast5.tiktokv.us/aweme/v1/play/?{urlencode(query_params)}"
+                    new_video_url = f"https://api16-normal-useast5.tiktokv.us/aweme/v1/play/?{urlencode(new_params)}"
                     
                     await message.answer(title)
                     await message.answer(f"URL: {new_video_url}")
