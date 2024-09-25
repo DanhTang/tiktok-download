@@ -34,7 +34,7 @@ async def echo(message: types.Message):
                 'outtmpl': '%(id)s.%(ext)s',
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(xurl, download=False)
+                info_dict = ydl.extract_info(xurl, download=True)
                 video_url = info_dict.get("url", None)
                 title = info_dict.get("title", "Không tìm thấy tiêu đề")
                 
