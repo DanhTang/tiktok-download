@@ -85,7 +85,7 @@ async def echo(message: types.Message):
 
     # Kiểm tra nếu URL chứa "tiktok.com"
     if "tiktok.com" in xurl:
-        await message.answer("[+] Please Wait")
+        await message.answer("[+] Vui lòng đợi")
         try:
             ydl_opts = {
                 'format': 'best',
@@ -123,8 +123,8 @@ async def echo(message: types.Message):
                     await message.answer("[+] Error: Could not find video URL.")
         except Exception as e:
             await message.answer(f"[+] Error: {str(e)}")
-    # else:
-    #     await message.answer("[+] invalid url")
+    else:
+        await message.answer("[+] Không phải url")
 
 async def main():
     await dp.start_polling()
